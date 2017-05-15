@@ -28,42 +28,34 @@ class WNBAScraper:
         return df
 
     def get_player_log(self, year, pid):
+        def get_headers(self, df):
+            if df.empty is False:
+                df.columns = self.log_columns
+                df['pid'] = df.pid.astype(int)
+                return df
+            else:
+                return df
+
         if year == 2013:
             response = requests.get(self.log_prefix + str(pid) + '&Season=2013-14&SeasonType=Regular+Season', headers=self.headers)
             df = json_normalize(response.json(), ['resultSets', 'rowSet'])
-            if df.empty is False:
-                df.columns = self.log_columns
-                df['pid'] = df.pid.astype(int)
-                return df
-            else:
-                return df
+            df = get_headers(df)
+            return df
         elif year == 2014:
             response = requests.get(self.log_prefix + str(pid) + '&Season=2014-15&SeasonType=Regular+Season', headers=self.headers)
             df = json_normalize(response.json(), ['resultSets', 'rowSet'])
-            if df.empty is False:
-                df.columns = self.log_columns
-                df['pid'] = df.pid.astype(int)
-                return df
-            else:
-                return df
+            df = get_headers(df)
+            return df
         elif year == 2015:
             response = requests.get(self.log_prefix + str(pid) + '&Season=2015-16&SeasonType=Regular+Season', headers=self.headers)
             df = json_normalize(response.json(), ['resultSets', 'rowSet'])
-            if df.empty is False:
-                df.columns = self.log_columns
-                df['pid'] = df.pid.astype(int)
-                return df
-            else:
-                return df
+            df = get_headers(df)
+            return df
         else:
             response = requests.get(self.log_prefix + str(pid) + '&Season=2016-17&SeasonType=Regular+Season', headers=self.headers)
             df = json_normalize(response.json(), ['resultSets', 'rowSet'])
-            if df.empty is False:
-                df.columns = self.log_columns
-                df['pid'] = df.pid.astype(int)
-                return df
-            else:
-                return df
+            df = get_headers(df)
+            return df
 
     def run(self):
         for year in [2013, 2014, 2015, 2016]:
@@ -81,8 +73,7 @@ class WNBAScraper:
 
         self.scraped_logs.to_csv('./gamelogs.csv', index=False)
 
-#if __name__ == '__main__':
-
-scraper = WNBAScraper()
-print("Scraping game logs...")
-scraper.run()
+if __name__ == '__main__':
+    print("Scraping game logs...")
+    scraper = WNBAScraper()
+    scraper.run()
