@@ -2,7 +2,6 @@ from pandas.io.json import json_normalize
 import json
 import pandas as pd
 import requests
-import time
 
 class WNBAScraper:
 
@@ -41,49 +40,21 @@ class WNBAScraper:
             return df
 
     def get_player_log(self, year, pid):
-        if year == 2013:
-            response = requests.get(self.log_prefix + str(pid) + '&Season=2013-14&SeasonType=Regular+Season', headers=self.headers)
-            data = json.loads(response.content)
-            df = json_normalize(data, ['resultSets', 'rowSet'])
-            df = self.get_player_log_headers(df)
-            return df
-        elif year == 2014:
-            response = requests.get(self.log_prefix + str(pid) + '&Season=2014-15&SeasonType=Regular+Season', headers=self.headers)
-            data = json.loads(response.content)
-            df = json_normalize(data, ['resultSets', 'rowSet'])
-            df = self.get_player_log_headers(df)
-            return df
-        elif year == 2015:
-            response = requests.get(self.log_prefix + str(pid) + '&Season=2015-16&SeasonType=Regular+Season', headers=self.headers)
-            data = json.loads(response.content)
-            df = json_normalize(data, ['resultSets', 'rowSet'])
-            df = self.get_player_log_headers(df)
-            return df
-        elif year == 2016:
-            response = requests.get(self.log_prefix + str(pid) + '&Season=2016-17&SeasonType=Regular+Season', headers=self.headers)
-            data = json.loads(response.content)
-            df = json_normalize(data, ['resultSets', 'rowSet'])
-            df = self.get_player_log_headers(df)
-            return df
-        else:
-            response = requests.get(self.log_prefix + str(pid) + '&Season=2017-18&SeasonType=Regular+Season', headers=self.headers)
-            data = json.loads(response.content)
-            response.connection.close()
-            df = json_normalize(data, ['resultSets', 'rowSet'])
-            df = self.get_player_log_headers(df)
-            return df
+        response = requests.get(self.log_prefix + str(pid) + '&Season=' + str(year) + '-' + str(int(str(year)[2:4]) + 1) + '&SeasonType=Regular+Season', headers=self.headers)
+        data = json.loads(response.content)
+        df = json_normalize(data, ['resultSets', 'rowSet'])
+        df = self.get_player_log_headers(df)
+        return df
 
     def run(self, years, outfile):
         for year in years:
-            print(year)
+            print('Scraping game logs from ' + str(year))
             season_logs = pd.DataFrame(columns=self.log_columns)
             player_info = self.get_player_info(year)
             player_info['player'] = player_info.fn + ' ' + player_info.ln
             player_ids = player_info['pid'].values.tolist()
             for pid in player_ids:
                 df = self.get_player_log(year, pid)
-                print(df)
-                time.sleep(1)
                 season_logs = season_logs.append(df, ignore_index=True)
 
             season_logs = season_logs.merge(player_info, on='pid', how='left')
@@ -92,6 +63,6 @@ class WNBAScraper:
         self.scraped_logs.to_csv(outfile, index=False)
 
 if __name__ == '__main__':
-    print("Scraping game logs...")
     scraper = WNBAScraper()
-    scraper.run(years=[2013, 2014, 2015, 2016, 2017], outfile='./gamelogs.csv')
+    years = input('Enter desired years in a comma separated list to scrape data:')
+    scraper.run(years=years.split(','), outfile='./gamelogs.csv')
